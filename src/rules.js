@@ -11,7 +11,10 @@ export const RULES = {
   highValue: 600, // value at stake for High priority
   mediumValue: 200, // value at stake for Medium priority
   topSkus: 8, // rows shown in the SKU table
+  hotSpotIncidents: 3, // incidents in one location on one shift -> hot spot
 };
+
+export const SHIFTS = ['Morning', 'Afternoon', 'Overnight'];
 
 const sum = (rows, field) => rows.reduce((total, row) => total + Number(row[field]), 0);
 const round = (x, digits) => Math.round(x * 10 ** digits) / 10 ** digits;
@@ -90,7 +93,7 @@ export function vendorScores(vendors) {
 
 // The automated part: every SKU and vendor is checked against RULES and each
 // breach becomes one action with a recommended next step and a value at stake.
-export function actions(skus, vendors, rules = RULES) {
+export function actions(skus, vendors, rules = RULES, spots = []) {
   const queue = [];
   const add = (id, item, trigger, evidence, action, value) =>
     queue.push({
@@ -178,6 +181,19 @@ export function actions(skus, vendors, rules = RULES) {
     }
   }
 
+  for (const spot of spots) {
+    if (!spot.flagged) continue;
+    const slug = `${spot.location}-${spot.shift}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    add(
+      `hotspot-${slug}`,
+      `${spot.location}, ${spot.shift} shift`,
+      'Hot spot',
+      `${spot.incidents} incidents and ${spot.units} units lost in the same place on the same shift`,
+      'Check staffing, cameras and handling on this shift',
+      spot.value,
+    );
+  }
+
   return queue.sort((a, b) => b.value_at_stake - a.value_at_stake);
 }
 
@@ -187,4 +203,78 @@ export function actionSummary(queue) {
     high_priority: queue.filter((action) => action.priority === 'High').length,
     value_at_stake: queue.reduce((total, action) => total + action.value_at_stake, 0),
   };
+}
+
+// Logged incidents change the picture: damage adds to a SKU's damaged units,
+// and a known loss (theft, empty package) comes off what is on the shelf.
+// A loss logged before the SKU's latest count is already in that count, so it is skipped.
+export function applyIncidents(skus, incidents) {
+  return skus.map((sku) => {
+    let damaged = 0;
+    let lost = 0;
+    for (const incident of incidents) {
+      if (incident.sku !== sku.sku) continue;
+      if (incident.type === 'Damage') damaged += Number(incident.units);
+      else if (!sku.counted_at || String(incident.at) > String(sku.counted_at)) lost += Number(incident.units);
+    }
+    if (!damaged && !lost) return sku;
+    return {
+      ...sku,
+      damaged_units_28d: Number(sku.damaged_units_28d) + damaged,
+      counted_qty: Math.max(0, Number(sku.counted_qty) - lost),
+    };
+  });
+}
+
+// Where and when loss clusters: incidents grouped by location and shift.
+export function hotSpots(incidents, skus, rules = RULES) {
+  const bySku = new Map(skus.map((sku) => [sku.sku, sku]));
+  const groups = new Map();
+  for (const incident of incidents) {
+    const sku = bySku.get(incident.sku);
+    if (!sku) continue;
+    const key = `${sku.location}|${incident.shift}`;
+    const group = groups.get(key) || { location: sku.location, shift: incident.shift, incidents: 0, units: 0, value: 0 };
+    group.incidents += 1;
+    group.units += Number(incident.units);
+    group.value += Number(incident.units) * Number(sku.unit_cost);
+    groups.set(key, group);
+  }
+  return [...groups.values()]
+    .map((group) => ({ ...group, value: Math.round(group.value), flagged: group.incidents >= rules.hotSpotIncidents }))
+    .sort((a, b) => b.incidents - a.incidents || b.value - a.value);
+}
+
+// Closing the loop. An action marked done is not counted as fixed until new data
+// stops triggering its rule. `done` maps action id -> { at, value, item, trigger }.
+export function reviewQueue(queue, done = {}) {
+  const live = new Set(queue.map((action) => action.id));
+  const resolved = Object.entries(done)
+    .filter(([id]) => !live.has(id))
+    .map(([id, record]) => ({ id, ...record }));
+  return {
+    open: queue.filter((action) => !done[action.id]),
+    waiting: queue.filter((action) => done[action.id]),
+    resolved,
+    recovered_value: resolved.reduce((total, record) => total + Number(record.value || 0), 0),
+  };
+}
+
+// A ready-to-send credit claim for a vendor action, built from the same evidence.
+export function claimDraft(action) {
+  const kind = action.trigger === 'Short shipments' ? 'short shipments' : 'product damaged on arrival';
+  return [
+    `Subject: Credit claim for ${kind}`,
+    '',
+    `Hello ${action.item} team,`,
+    '',
+    `Over the last 28 days, ${action.evidence}.`,
+    `We are requesting a credit of $${action.value_at_stake.toLocaleString('en-US')} for the affected units, valued at our average unit cost.`,
+    '',
+    'Receiving records and photos are available on request. Please confirm the credit, or tell us what else you need, within 10 business days.',
+    '',
+    'Thank you,',
+    '[Your name]',
+    '[Store name]',
+  ].join('\n');
 }

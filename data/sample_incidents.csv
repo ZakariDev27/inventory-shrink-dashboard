@@ -1,0 +1,9 @@
+at,sku,type,units,cause,shift,note
+2026-11-03T02:10:00Z,HG-4009,Damage,2,Stocking and forklift handling,Overnight,Pallet tipped during restock
+2026-11-07T03:40:00Z,HG-4052,Damage,1,Stocking and forklift handling,Overnight,Dropped from top shelf
+2026-11-12T01:55:00Z,HG-4009,Damage,1,Stocking and forklift handling,Overnight,Crushed under a heavier case
+2026-11-14T02:30:00Z,HG-4052,Damage,2,Packaging failure,Overnight,Box split at the seam
+2026-11-05T16:20:00Z,EL-1042,Shrink,2,External theft,Afternoon,Empty packages found on shelf
+2026-11-10T17:05:00Z,EL-1107,Shrink,1,External theft,Afternoon,Security tag removed
+2026-11-15T15:45:00Z,EL-1042,Shrink,1,External theft,Afternoon,Empty package found
+2026-11-09T09:15:00Z,GR-3177,Damage,3,Stocking and forklift handling,Morning,Case dropped at receiving

@@ -11,7 +11,7 @@
   <header>
     <h1>Inventory shrink and damage</h1>
     <p class="lede">Shrink and damage cost <b id="lede-loss">—</b> over the last 4 weeks, <b id="lede-change">—</b>% against the 4 weeks before. The largest single cause is <b id="lede-cause">—</b>, at <b id="lede-share">—</b>% of the loss.</p>
-    <p class="note">All figures are sample data for a fictional store. Replace the CSV files in <code>data/</code> with your own exports to make it real.</p>
+    <p class="note">The dashboard starts with sample data for a fictional store. Add your own counts, incidents, deliveries and SKUs below. The weekly trend and loss-by-cause charts stay on the sample history.</p>
     <p class="error" id="error" hidden></p>
   </header>
 
@@ -20,6 +20,52 @@
     <div class="card"><p class="label">Damage rate, last 4 weeks</p><p class="big"><span id="k-damage">—</span>%</p><p class="sub"><span id="k-damage-chg">—</span> pts vs prior 4 weeks</p><p class="sub">Damaged product written off, as a share of sales</p></div>
     <div class="card"><p class="label">Loss value, last 4 weeks</p><p class="big" id="k-loss">—</p><p class="sub"><span id="k-loss-chg">—</span>% vs prior 4 weeks</p><p class="sub">Shrink plus damage, at cost</p></div>
     <div class="card"><p class="label">Open actions</p><p class="big" id="k-actions">—</p><p class="sub"><span id="k-high">—</span> high priority</p><p class="sub"><span id="k-stake">—</span> at stake</p></div>
+    <div class="card"><p class="label">Confirmed fixed</p><p class="big" id="k-fixed">—</p><p class="sub"><span id="k-recovered">—</span> no longer at risk</p><p class="sub">Done and backed up by new data</p></div>
+  </section>
+
+  <section id="add">
+    <h2>Add information</h2>
+    <p class="desc">What you enter is saved in this browser, and the action queue, hot spots and tables update straight away.</p>
+    <p class="msg" id="form-msg" role="status"></p>
+    <div class="forms">
+      <form class="card form" id="f-incident" novalidate>
+        <h3>Log an incident</h3>
+        <label>SKU<select name="sku" data-fill="skus"></select></label>
+        <label>What happened<select name="type"><option value="Damage">Damage</option><option value="Shrink">Theft or other loss</option></select></label>
+        <label>Units<input name="units" type="number" min="1" step="1" inputmode="numeric"></label>
+        <label>Cause<select name="cause"><option>Stocking and forklift handling</option><option>Packaging failure</option><option>Damaged on arrival</option><option>Customer returns</option><option>External theft</option><option>Internal theft</option><option>Expired or spoiled</option><option>Other</option></select></label>
+        <label>Shift<select name="shift"><option>Morning</option><option>Afternoon</option><option>Overnight</option></select></label>
+        <label>Note (optional)<input name="note" maxlength="120"></label>
+        <button type="submit">Save incident</button>
+      </form>
+      <form class="card form" id="f-count" novalidate>
+        <h3>Enter a cycle count</h3>
+        <label>SKU<select name="sku" data-fill="skus"></select></label>
+        <label>Units counted<input name="counted" type="number" min="0" step="1" inputmode="numeric"></label>
+        <button type="submit">Save count</button>
+        <h3 class="gap">Log a delivery</h3>
+        <label>Vendor<select name="vendor" data-fill="vendors" form="f-delivery"></select></label>
+        <label>Units received<input name="received" type="number" min="1" step="1" inputmode="numeric" form="f-delivery"></label>
+        <label>Arrived damaged<input name="damaged" type="number" min="0" step="1" inputmode="numeric" form="f-delivery"></label>
+        <label>Short shipped<input name="short" type="number" min="0" step="1" inputmode="numeric" form="f-delivery"></label>
+        <button type="submit" form="f-delivery">Save delivery</button>
+      </form>
+      <form class="card form" id="f-sku" novalidate>
+        <h3>Add a SKU</h3>
+        <label>SKU code<input name="sku" maxlength="20"></label>
+        <label>Product<input name="product" maxlength="60"></label>
+        <label>Location<input name="location" maxlength="30"></label>
+        <label>Vendor<input name="vendor" maxlength="40" list="vendor-list"></label>
+        <label>Unit cost ($)<input name="unit_cost" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <label>System quantity<input name="system_qty" type="number" min="1" step="1" inputmode="numeric"></label>
+        <label>Units counted<input name="counted_qty" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label>Weekly sales (units)<input name="weekly_sales_units" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label>Days to expiry (optional)<input name="days_to_expiry" type="number" min="0" step="1" inputmode="numeric"></label>
+        <button type="submit">Add SKU</button>
+      </form>
+    </div>
+    <form id="f-delivery" novalidate></form>
+    <datalist id="vendor-list"></datalist>
   </section>
 
   <section>
@@ -36,10 +82,37 @@
 
   <section>
     <h2>Automated action queue</h2>
-    <p class="desc">Rules check every SKU and vendor against the thresholds listed at the foot of the page and say what to do next, largest value first.</p>
+    <p class="desc">Rules check every SKU, vendor and shift against the thresholds at the foot of the page and say what to do next, largest value first. Marking an action done does not close it: it stays here as waiting until new counts or deliveries show the problem is gone.</p>
     <div class="scroll"><table>
-      <thead><tr><th>Priority</th><th>SKU or vendor</th><th>What triggered it</th><th>Recommended action</th><th class="num">Value at stake</th></tr></thead>
+      <thead><tr><th>Priority</th><th>SKU or vendor</th><th>What triggered it</th><th>Recommended action</th><th class="num">Value at stake</th><th>Status</th></tr></thead>
       <tbody id="actions-body"></tbody>
+    </table></div>
+    <div class="card panel" id="claim-panel" hidden>
+      <h3>Credit claim draft</h3>
+      <textarea id="claim-text" rows="12" aria-label="Credit claim draft"></textarea>
+      <p class="buttons"><button type="button" id="claim-copy">Copy</button><button type="button" class="quiet" id="claim-close">Close</button></p>
+    </div>
+    <div id="fixed-wrap" hidden>
+      <h3 class="gap">Confirmed fixed</h3>
+      <p class="desc">Actions you marked done whose rule has stopped triggering since. Until new data backs it up, a done action stays in the queue as waiting.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>SKU or vendor</th><th>Rule</th><th>Marked done</th><th class="num">Value</th><th></th></tr></thead>
+        <tbody id="fixed-body"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Hot spots: where and when loss clusters</h2>
+    <p class="desc">Logged incidents grouped by location and shift. <span id="t-hot">—</span> or more in the same place on the same shift is flagged and added to the action queue.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Location</th><th>Shift</th><th class="num">Incidents</th><th class="num">Units</th><th class="num">Value</th></tr></thead>
+      <tbody id="spots-body"></tbody>
+    </table></div>
+    <h3 class="gap">Latest incidents</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Date</th><th>SKU</th><th>Type</th><th class="num">Units</th><th>Cause</th><th>Shift</th><th>Note</th><th></th></tr></thead>
+      <tbody id="incidents-body"></tbody>
     </table></div>
   </section>
 
@@ -61,17 +134,28 @@
     </table></div>
   </section>
 
-  <details>
-    <summary>Rules and thresholds behind the action queue</summary>
-    <ul>
-      <li>Count variance: a SKU missing <b id="t-variance">—</b>% or more of its system count is recounted, with stock adjustments held for sign-off. If it also costs $<b id="t-cage">—</b> or more per unit, it moves to a locked cage.</li>
-      <li>Damage rate: a SKU with <b id="t-damage">—</b>% or more of received units damaged gets a packaging inspection and a new slot.</li>
-      <li>Expiry risk: stock within <b id="t-expiry">—</b> days of expiry that will not sell in time at the current weekly rate is marked down.</li>
-      <li>Arrives damaged: a vendor with <b id="t-doa">—</b>% or more of units damaged on arrival gets a credit claim and photos at receiving.</li>
-      <li>Short shipments: a vendor short by <b id="t-short">—</b>% or more of units moves to blind receiving counts.</li>
-      <li>Priority is High at $<b id="t-high">—</b> or more at stake and Medium at $<b id="t-medium">—</b> or more.</li>
-    </ul>
-  </details>
+  <section id="rules">
+    <h2>Rules and thresholds</h2>
+    <p class="desc">Change a number and the action queue is worked out again. These are starting values, not industry standards.</p>
+    <div class="rules">
+      <label>Count variance, % of system count<input type="number" min="0" step="0.5" data-rule="variancePct"></label>
+      <label>Locked cage at unit cost, $<input type="number" min="0" step="1" data-rule="cageUnitCost"></label>
+      <label>Damage rate, % of received units<input type="number" min="0" step="0.5" data-rule="damagePct"></label>
+      <label>Expiry window, days<input type="number" min="0" step="1" data-rule="expiryDays"></label>
+      <label>Vendor arrives damaged, %<input type="number" min="0" step="0.5" data-rule="doaPct"></label>
+      <label>Vendor short shipped, %<input type="number" min="0" step="0.5" data-rule="shortPct"></label>
+      <label>Hot spot, incidents per shift<input type="number" min="1" step="1" data-rule="hotSpotIncidents"></label>
+      <label>High priority at, $<input type="number" min="0" step="50" data-rule="highValue"></label>
+      <label>Medium priority at, $<input type="number" min="0" step="50" data-rule="mediumValue"></label>
+    </div>
+    <p class="buttons"><button type="button" class="quiet" id="rules-reset">Reset thresholds</button></p>
+  </section>
+
+  <section id="data">
+    <h2>Your data</h2>
+    <p class="desc">Everything you enter stays in this browser on this device. Export a backup to keep it or move it to another device.</p>
+    <p class="buttons"><button type="button" id="data-export">Export backup</button><label class="filebtn">Import backup<input type="file" id="data-import" accept="application/json,.json"></label><button type="button" class="quiet" id="data-reset">Reset to sample data</button></p>
+  </section>
 </main>
 <script src="vendor/d3.min.js"></script>
 <script type="module" src="src/app.js"></script>
