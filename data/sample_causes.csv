@@ -1,0 +1,10 @@
+cause,type,loss_value
+External theft,Shrink,5730
+Receiving and count errors,Shrink,3380
+Internal theft,Shrink,2650
+Pricing and admin errors,Shrink,1620
+Expired or spoiled,Shrink,1320
+Stocking and forklift handling,Damage,2210
+Damaged on arrival,Damage,1840
+Packaging failure,Damage,1130
+Customer returns,Damage,780

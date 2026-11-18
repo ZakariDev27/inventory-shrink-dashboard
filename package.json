@@ -1,0 +1,11 @@
+{
+  "name": "inventory-shrink-dashboard",
+  "version": "0.1.0",
+  "description": "Inventory dashboard with a rules engine that flags shrink and damaged product and says what to do next.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test"
+  }
+}

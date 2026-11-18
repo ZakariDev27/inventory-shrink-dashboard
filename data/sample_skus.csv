@@ -1,0 +1,15 @@
+sku,product,category,vendor,location,unit_cost,system_qty,counted_qty,received_28d,damaged_units_28d,weekly_sales_units,days_to_expiry
+EL-1042,Wireless earbuds,Electronics,Northline Electronics,Aisle 14,62.00,120,104,160,2,34,
+EL-1107,Bluetooth speaker,Electronics,Northline Electronics,Aisle 14,48.50,85,83,90,1,18,
+EL-1210,Tablet 10-inch,Electronics,Northline Electronics,Aisle 14,219.00,40,37,36,0,7,
+HB-2031,Razor blade refills 8-pack,Health and beauty,Carewell Supply,Aisle 6,21.40,310,279,400,3,88,
+HB-2088,Sunscreen SPF 50,Health and beauty,Carewell Supply,Aisle 6,9.80,260,256,300,4,52,
+GR-3015,Whole milk 1 gal,Grocery,Valley Fresh Dairy,Cooler 2,2.95,420,414,2400,62,560,5
+GR-3044,Greek yogurt 32 oz,Grocery,Valley Fresh Dairy,Cooler 2,3.60,380,376,900,21,110,12
+GR-3120,Olive oil 750 ml,Grocery,Harbor Foods,Aisle 3,8.75,190,188,240,11,46,
+GR-3177,Pasta sauce glass jar,Grocery,Harbor Foods,Aisle 3,2.40,520,515,800,38,170,
+HG-4009,Ceramic dinner plates 4-set,Home goods,Brightside Home,Aisle 9,17.90,140,138,150,13,22,
+HG-4052,Glass storage set,Home goods,Brightside Home,Aisle 9,24.50,95,94,110,9,19,
+HG-4101,LED desk lamp,Home goods,Brightside Home,Aisle 10,31.00,70,69,60,1,11,
+AP-5020,Denim jacket,Apparel,Meridian Apparel,Floor 2,38.00,110,101,120,0,20,
+AP-5066,Running shoes,Apparel,Meridian Apparel,Floor 2,54.00,90,86,96,1,17,

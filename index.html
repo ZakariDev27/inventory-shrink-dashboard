@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory shrink and damage dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Inventory shrink and damage</h1>
+    <p class="lede">Shrink and damage cost <b id="lede-loss">—</b> over the last 4 weeks, <b id="lede-change">—</b>% against the 4 weeks before. The largest single cause is <b id="lede-cause">—</b>, at <b id="lede-share">—</b>% of the loss.</p>
+    <p class="note">All figures are sample data for a fictional store. Replace the CSV files in <code>data/</code> with your own exports to make it real.</p>
+    <p class="error" id="error" hidden></p>
+  </header>
+
+  <section class="cards">
+    <div class="card"><p class="label">Shrink rate, last 4 weeks</p><p class="big"><span id="k-shrink">—</span>%</p><p class="sub"><span id="k-shrink-chg">—</span> pts vs prior 4 weeks</p><p class="sub">Unexplained loss as a share of sales</p></div>
+    <div class="card"><p class="label">Damage rate, last 4 weeks</p><p class="big"><span id="k-damage">—</span>%</p><p class="sub"><span id="k-damage-chg">—</span> pts vs prior 4 weeks</p><p class="sub">Damaged product written off, as a share of sales</p></div>
+    <div class="card"><p class="label">Loss value, last 4 weeks</p><p class="big" id="k-loss">—</p><p class="sub"><span id="k-loss-chg">—</span>% vs prior 4 weeks</p><p class="sub">Shrink plus damage, at cost</p></div>
+    <div class="card"><p class="label">Open actions</p><p class="big" id="k-actions">—</p><p class="sub"><span id="k-high">—</span> high priority</p><p class="sub"><span id="k-stake">—</span> at stake</p></div>
+  </section>
+
+  <section>
+    <h2>Shrink and damage as a share of sales, by week</h2>
+    <p class="legend"><span><i class="swatch s0"></i>Shrink</span><span><i class="swatch s1"></i>Damage</span></p>
+    <div class="chart" id="trend"></div>
+  </section>
+
+  <section>
+    <h2>Where the last 4 weeks of loss came from</h2>
+    <p class="legend"><span><i class="swatch s0"></i>Shrink</span><span><i class="swatch s1"></i>Damage</span></p>
+    <div class="chart" id="causes"></div>
+  </section>
+
+  <section>
+    <h2>Automated action queue</h2>
+    <p class="desc">Rules check every SKU and vendor against the thresholds listed at the foot of the page and say what to do next, largest value first.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Priority</th><th>SKU or vendor</th><th>What triggered it</th><th>Recommended action</th><th class="num">Value at stake</th></tr></thead>
+      <tbody id="actions-body"></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>SKUs losing the most</h2>
+    <p class="desc">The <span id="t-top">—</span> tracked SKUs with the highest loss value. Missing units are the system quantity minus the last cycle count. Damage rate is damaged units as a share of units received in the last 28 days. Red marks a value past its threshold.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>SKU</th><th>Product</th><th>Location</th><th class="num">Missing units</th><th class="num">Count variance</th><th class="num">Damage rate</th><th class="num">Loss value</th></tr></thead>
+      <tbody id="skus-body"></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Vendor scorecard, last 28 days</h2>
+    <p class="desc">How much of each vendor's deliveries arrived damaged or short, and the credit claims still open with them.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Vendor</th><th class="num">Units received</th><th class="num">Arrived damaged</th><th class="num">Short shipped</th><th class="num">Open claims</th></tr></thead>
+      <tbody id="vendors-body"></tbody>
+    </table></div>
+  </section>
+
+  <details>
+    <summary>Rules and thresholds behind the action queue</summary>
+    <ul>
+      <li>Count variance: a SKU missing <b id="t-variance">—</b>% or more of its system count is recounted, with stock adjustments held for sign-off. If it also costs $<b id="t-cage">—</b> or more per unit, it moves to a locked cage.</li>
+      <li>Damage rate: a SKU with <b id="t-damage">—</b>% or more of received units damaged gets a packaging inspection and a new slot.</li>
+      <li>Expiry risk: stock within <b id="t-expiry">—</b> days of expiry that will not sell in time at the current weekly rate is marked down.</li>
+      <li>Arrives damaged: a vendor with <b id="t-doa">—</b>% or more of units damaged on arrival gets a credit claim and photos at receiving.</li>
+      <li>Short shipments: a vendor short by <b id="t-short">—</b>% or more of units moves to blind receiving counts.</li>
+      <li>Priority is High at $<b id="t-high">—</b> or more at stake and Medium at $<b id="t-medium">—</b> or more.</li>
+    </ul>
+  </details>
+</main>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
