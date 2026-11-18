@@ -27,7 +27,7 @@ Priority is High at $600 or more at stake, Medium at $200 or more. All threshold
 
 ## Run it
 
-No build step. The page loads D3 from a CDN and reads the CSV files with `fetch`, so it has to be served over http:
+No build step and no network dependencies: D3 is bundled in `vendor/`. The page reads the CSV files with `fetch`, so it has to be served over http:
 
 ```bash
 npm start        # python3 -m http.server 8080
@@ -52,6 +52,7 @@ styles.css          light and dark theme
 src/rules.js        metrics and rules engine: pure functions, no DOM
 src/app.js          loads the CSVs, calls rules.js, draws charts and tables
 data/*.csv          sample data
+vendor/d3.min.js    D3 v7 (ISC license, see vendor/d3-LICENSE)
 test/rules.test.js  tests for rules.js
 ```
 
